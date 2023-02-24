@@ -20,7 +20,7 @@ def bubble_sort(unsort_list):
 print(bubble_sort(unsort_list))
 
   #  2 part
-
+val = int(input())
 def binary_search(val,unsort_list):
     n = max(unsort_list)
     result = False
@@ -44,4 +44,4 @@ def binary_search(val,unsort_list):
         else:
             print(f'Элемент не найден!')
 
-binary_search(7, unsort_list)
+binary_search(val, unsort_list)
