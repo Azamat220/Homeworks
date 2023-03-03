@@ -1,120 +1,55 @@
 import sqlite3
 
 
-def create_connection(db_name):
-    connection = None
-    try:
-        connection = sqlite3.connect(db_name)
-    except sqlite3.Error as e:
-        print(e)
-
-    return connection
-
-
-def create_table(conn, sql):
-    try:
-        cursor = conn.cursor()
-        cursor.execute(sql)
-    except sqlite3.Error as e:
-        print(e)
-
-
-def insert_product(conn, product):
-    try:
-        sql = '''INSERT INTO products 
-        (name, price, type, weight, expiration_date) 
-        VALUES (?, ?, ?, ?, ?)
-        '''
-        cursor = conn.cursor()
-        cursor.execute(sql, product)
-        conn.commit()
-    except sqlite3.Error as e:
-        print(e)
-
-
-def select_all_products(conn):
-    try:
-        sql = '''SELECT * FROM products'''
-        cursor = conn.cursor()
-        cursor.execute(sql)
-        rows = cursor.fetchall()
-
-        for row in rows:
-            print(row)
-    except sqlite3.Error as e:
-        print(e)
-
-
-def select_products_by_price_limit(conn, limit):
-    try:
-        sql = '''SELECT * FROM products WHERE mark >= ?'''
-        cursor = conn.cursor()
-        cursor.execute(sql, (limit,))
-        rows = cursor.fetchall()
-
-        for row in rows:
-            print(row)
-    except sqlite3.Error as e:
-        print(e)
-
-
-def update_product(conn, product):
-    try:
-        sql = '''UPDATE products SET price = ?, expiration_date = ?
-        WHERE id = ?'''
-        cursor = conn.cursor()
-        cursor.execute(sql, product)
-        conn.commit()
-    except sqlite3.Error as e:
-        print(e)
-
-
-def delete_product(conn, id):
-    try:
-        sql = '''DELETE FROM products WHERE id = ?'''
-        cursor = conn.cursor()
-        cursor.execute(sql, (id,))
-        conn.commit()
-    except sqlite3.Error as e:
-        print(e)
-
-name, price, type, weight, expiration_date
-
-sql_create_products_table = '''
-CREATE TABLE products (
-id INTEGER PRIMARY KEY AUTOINCREMENT,
-name VARCHAR(200) NOT NULL, 
-price DOUBLE(5, 2) NOT NULL DEFAULT 0.0,
-type TEXT DEFAULT NULL,
-expiration_date DATE NOT NULL,
-
-)
-'''
-
-connection = create_connection('hw.db')
+connection = sqlite3.connect('hw.db')
 if connection is not None:
     print('Connected successfully')
-    create_table(connection, sql_create_products_table)
-    insert_product(connection,
-                   ('Turdaliev Iskhak', 99.88, 'Programming', '2000-09-12', True))
-    insert_product(connection, ("Mark Daniels", 77.12, "Football", "1999-01-02", False))
-    insert_product(connection, ("Alex Brilliant", 77.12, None, "1989-12-31", True))
-    insert_product(connection, ("Diana Julls", 99.3, "Tennis", "2005-01-22", True))
-    insert_product(connection, ("Michael Corse", 100.0, "Diving", "2001-09-17", True))
-    insert_product(connection, ("Jack Moris", 50.2, "Fishing and cooking", "2001-07-12", True))
-    insert_product(connection, ("Viola Manilson", 41.82, None, "1991-03-01", False))
-    insert_product(connection, ("Joanna Moris", 100.0, "Painting and arts", "2004-04-13", False))
-    insert_product(connection, ("Peter Parker", 32.0, "Travelling and bloging", "2002-11-28", False))
-    insert_product(connection, ("Paula Parkerson", 77.09, None, "2001-11-28", True))
-    insert_product(connection, ("George Newel", 93.0, "Photography", "1981-01-24", True))
-    insert_product(connection, ("Miranda Alistoun", 87.55, "Playing computer games", "1997-12-22", False))
-    insert_product(connection, ("Fiona Giordano", 66.12, "Driving fast", "1977-01-15", True))
 
-    select_all_products(connection)
 
-    select_students_by_mark_limit(connection, 50)
-    update_student(connection, (76.1, True, 2))
-    delete_student(connection, 2)
-    select_all_students(connection)
-    print('DONE')
-    connection.close()
+connection.execute('''CREATE TABLE IF NOT EXISTS products
+             (id INTEGER PRIMARY KEY AUTOINCREMENT,
+             product_title TEXT NOT NULL,
+             price NUMERIC(10, 2) NOT NULL DEFAULT 0.0,
+             quantity INTEGER NOT NULL DEFAULT 0)''')
+
+
+def add_products():
+    products = [('Liquid soap', 25.0, 20), ('Baby soap', 20.5, 30), ('Coca-cola', 75.0, 5),
+                ('Sprite', 70.5, 45), ('Fanta', 60.5, 65), ('Jamson', 2000.5, 45),
+                ('Juice', 50.5, 25), ('Red bull', 120.5, 65), ('Nitro', 60.0, 10),
+                ('Sausage', 200.5, 45), ('Milk', 70.5, 65), ('Smoke', 110.0, 1),
+                ('Ice cream', 50.0, 10), ('Lays', 120.0, 20), ('Apple', 120.0, 30)]
+    connection.executemany("INSERT INTO products (product_title, price, quantity) VALUES (?, ?, ?)", products)
+    connection.commit()
+
+
+def update_quantity(id, quantity):
+    connection.execute("UPDATE products SET quantity=? WHERE id=?", (quantity, id))
+    connection.commit()
+
+def update_price(id, price):
+    connection.execute("UPDATE products SET price=? WHERE id=?", (price, id))
+    connection.commit()
+
+
+def delete_product(id):
+    connection.execute("DELETE FROM products WHERE id=?", (id,))
+    connection.commit()
+
+
+def select_all_products():
+    cursor = connection.execute("SELECT * FROM products")
+    for row in cursor:
+        print(row)
+
+def select_cheap_products():
+    cursor = connection.execute("SELECT * FROM products WHERE price < 100.0 AND quantity > 5")
+    for row in cursor:
+        print(row)
+
+def search_products(name):
+    cursor = connection.execute("SELECT * FROM products WHERE product_title LIKE ?", ('%' + name + '%',))
+    for row in cursor:
+        print(row)
+
+connection.close()
